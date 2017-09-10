@@ -1,23 +1,10 @@
 #!/usr/bin/env python3
 
-import os
 import socket
 import sys
+
 import nmap
-import colorama
 
-# Python3 input behaves like previous raw_input.
-# solving for that in the event that we are using Python2
-try:
-    input = raw_input
-except NameError:
-    pass
-
-if os.getenv("SUDO_USER") == None:
-    print(colorama.Fore.RED + 'WARNING: Pulling Mac addresses and some other useful information requires \'sudo\'. ' + colorama.Fore.RESET)
-    respSudo = input("Would you like to continue without sudo [Y]es [N]o: ")
-    if respSudo in ['N', 'n']:
-        exit(0)
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(("8.8.8.8", 80))
 ipvarsplit = s.getsockname()[0].split(".")
