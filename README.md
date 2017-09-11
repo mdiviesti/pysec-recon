@@ -25,6 +25,25 @@ pull Mac addresses and it may not be able to determine all open
 ports, port protocols, or protocol versions, firmware versions, 
 and other useful data.
 
+# Usage: 
+```
+usage: pysec-recon.py [-h] [-t T] [-s] [-f] [-v]
+
+pysec-recon automates the recon process of security posture assessment.
+Requires python-nmap, shodan, and argparse. You can combine multiple options
+-sfv for instance
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -t T        Target IP Address. If you do not specify one, your current IP
+              address will be detected and used
+  -s          Subnet Scan: Scans all ip addresses in the subnet of the
+              provided address
+  -f          Full scan: Scans internal and external ip
+  -v          Vulnerability Scan: check for vulnerabilities in all found ips
+              and ports
+Author: Michael Diviesti @michael_atx on twitter
+```
 # Features
 * Determines your internal ip address
 * Scans ip addresses on your subnet
