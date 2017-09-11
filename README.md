@@ -56,8 +56,3 @@ This is very beginning stages.
 # Future Features
 The direction I'm taking this project is, now that the script has grabbed information about open ports, we can use that information to automatically search Shodan for known vulnerabilities that exist on your system.
 The goal here is not to automate the process of gaining entry into the system, rather, it is to automate the process of finding **POTENTIAL** holes in your system. 
-
-# Running the script 
-No arguments required (or accepted) at the moment
-You can just run the script as is (set for python3) or switch 
-the #! line to match your environment and then run it.
