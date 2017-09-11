@@ -5,6 +5,8 @@ import sys
 import shodan
 import nmap
 import argparse
+import colorama
+import time
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(("8.8.8.8", 80))
@@ -12,34 +14,59 @@ ipaddress = s.getsockname()[0]
 s.close()
 nma = nmap.PortScannerAsync()
 
+SHODAN_API_KEY = "YOUR_SHODAN_API_KEY"
+target = ''
+subnet = False
+full = False
+vuln = False
+external = ''
+
 # This is where we will send our data to the shodan api in order to see if there are any potential vulnerabilities.
-def checkVulns(host, port, scandata):
-    print('Vulnerability Scanner is a work in progress at the moment. ')
-    SHODAN_API_KEY = "Your API Key"
+def checkVulns(host, scandata):
+    global SHODAN_API_KEY
+    for k, item in scandata.items():
+        # print(item)
+        if str(item['product']) != '' and str(item['version']) != '':
+            strSearch = item['product'] + ' ' + item['version']
 
-    api = shodan.Shodan(SHODAN_API_KEY)
-    #The idea here is to parse through the scandata and construct strings to pass to the exploit api.
-    try:
-        # Search Shodan
-        results = api.exploits.search('PHP 5.6')
+            # The idea here is to parse through the scandata and construct strings to pass to the exploit api.
+            try:
+                # Search Shodan
+                api = shodan.Shodan(SHODAN_API_KEY)
+                results = api.exploits.search(strSearch)
 
-        # Show the results
-        print('Results found: %s' % results['total'])
-        for result in results['matches']:
-            print('IP: %s' % result)
-            #print(result['data'])
-            print('')
-    except shodan.APIError as e:
-        print('Error: %s' % e)
+                # Show the results
+                if results['total'] >= 1:
+                    print(host + ' ' + str(k), colorama.Fore.RED + strSearch + colorama.Fore.RESET)
+                else:
+                    print(host + ' ' + str(k), colorama.Fore.GREEN + strSearch + colorama.Fore.RESET)
+            except shodan.APIError as e:
+                print(host + 'Search Term: ' + strSearch + ' Error: %s' % e)
+        time.sleep(2)
+
 
 def callback_result(host, scan_result):
+    global vuln
     if int(scan_result['nmap']['scanstats']['uphosts']) >= 1:
-        print("------")
-        print(host, scan_result['scan'])
-        # grab_banner(host, scan_result["scan"][host]["tcp"])
-        # print("------")
+        if vuln:
+            if 'tcp' in scan_result['scan'][host]:
+                checkVulns(host, scan_result['scan'][host]['tcp'])
+
+                # print(host, scan_result['scan'])
+                # grab_banner(host, scan_result["scan"][host]["tcp"])
+                # print("------")
+
+def doscan(host):
+    nma.scan(hosts=host, callback=callback_result)
+    while nma.still_scanning():
+        nma.wait(2)
 
 def main():
+    global target
+    global vuln
+    global full
+    global external
+    global SHODAN_API_KEY
     parser = argparse.ArgumentParser(
         description='''pysec-recon automates the recon process of security posture assessment. Requires python-nmap, shodan, and argparse. You can combine multiple options -sfv for instance''',
         epilog="""Author: Michael Diviesti @michael_atx on twitter""")
@@ -58,14 +85,19 @@ def main():
     else:
         target = args.t
     print('scanning ' + target)
-    # if args.f:
-    #     print(args.f)
-    # if args.v:
-    #     print(args.v)
 
-    nma.scan(hosts=target, callback=callback_result)
-    while nma.still_scanning():
-        nma.wait(2)
+    if args.f:
+        full = True
+        api = shodan.Shodan(SHODAN_API_KEY)
+        external = api.tools.myip()
+    if args.v:
+        vuln = True
+
+    doscan(target)
+
+    if full:
+        doscan(external)
+
 
 if __name__ == "__main__":
     try:
